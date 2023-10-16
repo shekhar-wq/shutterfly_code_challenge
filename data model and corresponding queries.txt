@@ -1,0 +1,104 @@
+#Can you come up with Data models and corresponding SQL querying the data model?
+
+The simple data model can be created with following entities
+	Customers
+	Products
+	Orders
+	Order Items
+
+Data Model:
+
+Customers Table
+
+customer_id (Primary Key)
+first_name
+last_name
+email
+date_of_birth
+address
+
+
+
+
+Products Table
+
+product_id (Primary Key)
+product_name
+price
+category
+description
+
+
+
+
+Orders Table
+
+order_id (Primary Key)
+customer_id (Foreign Key to Customers)
+order_date
+total_amount
+
+
+
+
+Order Items Table
+
+order_item_id (Primary Key)
+order_id (Foreign Key to Orders)
+product_id (Foreign Key to Products)
+quantity
+item_total
+
+
+
+#the corresponding SQL queries to perform common operations are given as follows 
+#Assuming we have insert the data values in each tables. 
+
+
+#customer info
+SELECT * FROM Customers WHERE customer_id = 1;
+
+#product info
+SELECT * FROM Products WHERE product_id = 1;
+
+#product categories 
+SELECT DISTINCT category FROM Products;
+
+
+#to get orders for a customer 
+SELECT * FROM Orders WHERE customer_id = 1;
+
+#to get total spend by a customer
+
+SELECT customer_id, SUM(total_amount) AS total_spent
+FROM Orders
+WHERE customer_id = 1
+GROUP BY customer_id;
+
+
+#to get order details for a customer with products 
+SELECT O.*, P.product_name, OI.quantity, OI.item_total
+FROM Orders O
+JOIN OrderItems OI ON O.order_id = OI.order_id
+JOIN Products P ON OI.product_id = P.product_id
+WHERE O.customer_id = 1;
+
+
+#for product recommendation for a customer based on his past orders 
+SELECT P.product_id, P.product_name
+FROM Products P
+WHERE P.category IN (
+    SELECT DISTINCT P.category
+    FROM Products P
+    JOIN OrderItems OI ON P.product_id = OI.product_id
+    WHERE OI.order_id IN (SELECT order_id FROM Orders WHERE customer_id = 1)
+) AND P.product_id NOT IN (
+    SELECT OI.product_id
+    FROM OrderItems OI
+    WHERE OI.order_id IN (SELECT order_id FROM Orders WHERE customer_id = 1)
+);
+
+#======================================
+
+
+

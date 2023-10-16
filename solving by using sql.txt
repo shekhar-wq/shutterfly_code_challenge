@@ -1,0 +1,77 @@
+#Can you solve the same challenge through sql
+/*
+when we have a relational database with tables for each event types given (customer, site_visit, image, order) and that the data is loaded into those tables. we can use sql to query and calculate the ltv for customers. 
+*/
+
+#calculate the total amount per customer
+#we need to have columns customer_id and toal_amount in orders table.
+
+select customer_id, sum(total_amount) as total_order_amount
+from orders
+group by customer_id;
+
+
+
+
+
+#calculate the no of site visits per customers
+#we should have a site_visit table with a customer_id column
+
+select customer_id, count(*) as site_visits_count
+from site_visit
+group by customer_id;
+
+
+
+
+
+#to calculate ltv according to given formula
+
+select customer_id, (site_visits_count*total_order_amount*52*10) as LTV
+from(select o.customer_id, sum(o.total_amount) as total_order_amount
+	from orders o 
+	group by o.customer_id) as order_data
+
+join
+
+(select sv.customer_id, count(*) as site_visits_count 
+	from site_visit sv 
+	group by sv.customer_id) as site_visit_data
+on
+order_data.customer_id = site_visit_data.customer_id;
+
+
+
+
+
+
+
+
+#Get the top 10 customers with highest ltv
+
+with CustomerLTV as 
+(
+select customer_id, (site_visits_count*total_order_amount*52*10) as LTV
+from(select o.customer_id, sum(o.total_amount) as total_order_amount
+	from orders o 
+	group by o.customer_id) as order_data
+
+join
+
+(select sv.customer_id, count(*) as site_visits_count 
+	from site_visit sv 
+	group by sv.customer_id) as site_visit_data
+on
+order_data.customer_id = site_visit_data.customer_id;)
+
+
+
+
+select Top 10   
+customer_id, LTV 
+from customerLTV 
+order by LTV Desc;
+
+
+
+#========================
